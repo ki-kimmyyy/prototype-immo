@@ -3,517 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analyse Immobilier Locatif - Prototype</title>
-    <meta name="description" content="Prototype d'analyse de rentabilité locative pour investisseurs immobiliers">
-    
+    <title>Analyse Immobilier Locatif</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #2563eb;
-            --secondary: #64748b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --light: #f8fafc;
-            --dark: #0f172a;
-            --border: #e2e8f0;
-        }
-        
+        :root { --primary: #2563eb; --secondary: #64748b; --success: #10b981; --danger: #ef4444; --light: #f8fafc; --dark: #0f172a; --border: #e2e8f0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
-            line-height: 1.6;
-        }
-        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #0f172a; line-height: 1.6; }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        
-        header {
-            background: white;
-            border-bottom: 1px solid var(--border);
-            padding: 20px 0;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        header h1 { color: var(--dark); font-size: 1.8rem; font-weight: 700; }
-        header p { color: var(--secondary); margin-top: 5px; }
-        
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        
-        .tab:hover { background: var(--light); }
+        header { background: white; border-bottom: 1px solid var(--border); padding: 20px 0; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        header h1 { color: var(--dark); font-size: 1.8rem; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .tab { padding: 10px 20px; background: white; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
         .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
-        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        
-        .form-section {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        
-        .form-section h2 { color: var(--dark); margin-bottom: 20px; font-size: 1.4rem; }
-        
+        .form-section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        
         .form-group { display: flex; flex-direction: column; gap: 8px; }
-        .form-group label { font-weight: 500; color: var(--secondary); font-size: 0.9rem; }
-        .form-group input, .form-group select {
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
-        
-        .btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn:hover { background: #1d4ed8; }
-        .btn-secondary { background: var(--light); color: var(--dark); }
-        .btn-secondary:hover { background: var(--border); }
-        
+        .form-group label { font-weight: 500; color: var(--secondary); }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+        .btn { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; }
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid var(--border);
-        }
-        
-        .card h3 {
-            color: var(--secondary);
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 15px;
-        }
-        
-        .card-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 5px;
-        }
-        
-        .card-value.success { color: var(--success); }
-        .card-value.danger { color: var(--danger); }
-        .card-label { color: var(--secondary); font-size: 0.9rem; }
-        .card-icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.8; }
-        
-        #map { height: 500px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        
-        .map-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        
-        .map-legend {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-        
-        .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .legend-color { width: 20px; height: 20px; border-radius: 4px; }
-        
-        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .comparison-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid var(--border);
-        }
-        
-        .comparison-card h3 { color: var(--dark); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--primary); }
-        .comparison-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .comparison-row:last-child { border-bottom: none; }
-        .comparison-label { color: var(--secondary); font-weight: 500; }
-        .comparison-value { font-weight: 600; color: var(--dark); }
-        .comparison-value.success { color: var(--success); }
-        .comparison-value.danger { color: var(--danger); }
-        
-        .source-list { list-style: none; }
-        .source-item { display: flex; align-items: flex-start; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--border); }
-        .source-item:last-child { border-bottom: none; }
-        .source-icon { width: 40px; height: 40px; background: var(--light); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .source-content h4 { color: var(--dark); margin-bottom: 5px; }
-        .source-content p { color: var(--secondary); font-size: 0.9rem; }
-        .source-link { color: var(--primary); text-decoration: none; font-weight: 500; }
-        .source-link:hover { text-decoration: underline; }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        
-        .alert-info { background: #dbeafe; border: 1px solid #bfdbfe; color: #1e40af; }
-        .alert-warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
-        
-        @media (max-width: 768px) {
-            .comparison-grid { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
-            .card-value { font-size: 2rem; }
-        }
-        
-        [data-tooltip] { position: relative; }
-        [data-tooltip]:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--dark);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            z-index: 1000;
-        }
-        
-        .mt-20 { margin-top: 20px; }
-        .mb-20 { margin-bottom: 20px; }
-        .text-secondary { color: var(--secondary); }
-        .text-center { text-align: center; }
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .card-value { font-size: 2.5rem; font-weight: 700; }
+        #map { height: 500px; border-radius: 12px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>🏠 Analyse Immobilier Locatif</h1>
-            <p>Prototype d'analyse de rentabilité pour investisseurs</p>
-        </div>
-    </header>
-    
+    <header><div class="container"><h1>🏠 Analyse Immobilier Locatif</h1></div></header>
     <div class="container">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i>
-            <div>
-                <strong>Prototype en développement</strong><br>
-                Données pour Nancy, Douai, Sceaux, Le Conquet.
-            </div>
-        </div>
-        
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('analyse')">Analyse d'un bien</div>
-            <div class="tab" onclick="switchTab('carte')">Carte & Quartiers</div>
-            <div class="tab" onclick="switchTab('comparaison')">Comparaison</div>
+            <div class="tab active" onclick="switchTab('analyse')">Analyse</div>
+            <div class="tab" onclick="switchTab('carte')">Carte</div>
             <div class="tab" onclick="switchTab('sources')">Sources</div>
         </div>
-        
         <div id="analyse" class="tab-content active">
             <div class="form-section">
-                <h2>📊 Analyser un bien immobilier</h2>
+                <h2>Analyser un bien</h2>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label for="prix">Prix d'achat (€)</label>
-                        <input type="number" id="prix" placeholder="Ex: 250000" value="250000">
-                    </div>
-                    <div class="form-group">
-                        <label for="surface">Surface (m²)</label>
-                        <input type="number" id="surface" placeholder="Ex: 70" value="70">
-                    </div>
-                    <div class="form-group">
-                        <label for="loyer">Loyer mensuel estimé (€)</label>
-                        <input type="number" id="loyer" placeholder="Ex: 800" value="800">
-                    </div>
-                    <div class="form-group">
-                        <label for="charges">Charges mensuelles (€)</label>
-                        <input type="number" id="charges" placeholder="Ex: 100" value="100">
-                    </div>
-                    <div class="form-group">
-                        <label for="ville">Ville</label>
-                        <select id="ville">
-                            <option value="nancy">Nancy</option>
-                            <option value="douai">Douai</option>
-                            <option value="sceaux">Sceaux</option>
-                            <option value="le-conquet">Le Conquet</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="type">Type de bien</label>
-                        <select id="type">
-                            <option value="appartement">Appartement</option>
-                            <option value="maison">Maison</option>
-                            <option value="immeuble">Immeuble</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="pieces">Nombre de pièces</label>
-                        <input type="number" id="pieces" placeholder="Ex: 3" value="3">
-                    </div>
-                    <div class="form-group">
-                        <label for="taux">Taux d'emprunt (%)</label>
-                        <input type="number" id="taux" placeholder="Ex: 3.5" value="3.5" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="duree">Durée de l'emprunt (ans)</label>
-                        <input type="number" id="duree" placeholder="Ex: 20" value="20">
-                    </div>
-                    <div class="form-group">
-                        <label for="apport">Apport personnel (€)</label>
-                        <input type="number" id="apport" placeholder="Ex: 50000" value="50000">
-                    </div>
+                    <div class="form-group"><label>Prix (€)</label><input type="number" id="prix" value="250000"></div>
+                    <div class="form-group"><label>Surface (m²)</label><input type="number" id="surface" value="70"></div>
+                    <div class="form-group"><label>Loyer (€/mois)</label><input type="number" id="loyer" value="800"></div>
+                    <div class="form-group"><label>Ville</label><select id="ville"><option value="nancy">Nancy</option><option value="douai">Douai</option></select></div>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn" onclick="calculerRentabilite()">
-                        <i class="fas fa-calculator"></i> Calculer
-                    </button>
-                    <button class="btn btn-secondary" onclick="resetForm()">
-                        <i class="fas fa-redo"></i> Réinitialiser
-                    </button>
-                </div>
+                <button class="btn" onclick="calculerRentabilite()">Calculer</button>
             </div>
-            
-            <div id="results" style="display: none;">
-                <h2 style="margin-bottom: 20px;">📈 Résultats</h2>
+            <div id="results" style="display:none;">
                 <div class="dashboard">
-                    <div class="card">
-                        <div class="card-icon">💰</div>
-                        <h3>Rentabilité brute</h3>
-                        <div class="card-value" id="rentabilite-brute">0%</div>
-                        <div class="card-label">Loyer annuel / Prix</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">📉</div>
-                        <h3>Rentabilité nette</h3>
-                        <div class="card-value" id="rentabilite-nette">0%</div>
-                        <div class="card-label">Après charges</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">💵</div>
-                        <h3>Cash-flow mensuel</h3>
-                        <div class="card-value" id="cashflow">0 €</div>
-                        <div class="card-label">Bénéfice</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">📊</div>
-                        <h3>TRI</h3>
-                        <div class="card-value" id="tri">0%</div>
-                        <div class="card-label">Rendement annuel</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">🏦</div>
-                        <h3>Mensualité</h3>
-                        <div class="card-value" id="mensualite">0 €</div>
-                        <div class="card-label">Crédit</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">📅</div>
-                        <h3>Seuil rentabilité</h3>
-                        <div class="card-value" id="seuil">0 ans</div>
-                        <div class="card-label">Temps remboursement</div>
-                    </div>
-                </div>
-                <div class="form-section mt-20">
-                    <h2>📌 Infos complémentaires</h2>
-                    <div class="form-grid">
-                        <div class="card">
-                            <h3>Prix au m²</h3>
-                            <div class="card-value" id="prix-m2">0 €</div>
-                            <div class="card-label">Moyenne pour <span id="ville-name">Nancy</span></div>
-                        </div>
-                        <div class="card">
-                            <h3>Tension locative</h3>
-                            <div class="card-value" id="tension-locative">0/10</div>
-                        </div>
-                        <div class="card">
-                            <h3>Fourchette loyers</h3>
-                            <div class="card-value" id="fourchette-loyers">0 - 0 €</div>
-                        </div>
-                        <div class="card">
-                            <h3>Risque vacance</h3>
-                            <div class="card-value" id="risque-vacance">Faible</div>
-                        </div>
-                    </div>
+                    <div class="card"><h3>Rentabilité brute</h3><div class="card-value" id="rentabilite-brute">0%</div></div>
+                    <div class="card"><h3>Cash-flow</h3><div class="card-value" id="cashflow">0 €</div></div>
                 </div>
             </div>
         </div>
-        
         <div id="carte" class="tab-content">
-            <div class="form-section">
-                <h2>🗺️ Carte interactive</h2>
-                <p class="text-secondary mb-20">Sélectionnez une ville pour voir les détails.</p>
-                <div class="map-controls">
-                    <button class="btn btn-secondary" onclick="centerMap('nancy')">Nancy</button>
-                    <button class="btn btn-secondary" onclick="centerMap('douai')">Douai</button>
-                    <button class="btn btn-secondary" onclick="centerMap('sceaux')">Sceaux</button>
-                    <button class="btn btn-secondary" onclick="centerMap('le-conquet')">Le Conquet</button>
-                </div>
-                <div class="map-legend">
-                    <div class="legend-item"><div class="legend-color" style="background: #10b981;"></div><span>Tension élevée (8-10)</span></div>
-                    <div class="legend-item"><div class="legend-color" style="background: #f59e0b;"></div><span>Tension moyenne (5-7)</span></div>
-                    <div class="legend-item"><div class="legend-color" style="background: #ef4444;"></div><span>Tension faible (0-4)</span></div>
-                    <div class="legend-item"><i class="fas fa-school" style="color: #3b82f6;"></i><span>Écoles</span></div>
-                    <div class="legend-item"><i class="fas fa-university" style="color: #8b5cf6;"></i><span>Universités</span></div>
-                    <div class="legend-item"><i class="fas fa-building" style="color: #06b6d4;"></i><span>EHPAD</span></div>
-                    <div class="legend-item"><i class="fas fa-bus" style="color: #f59e0b;"></i><span>Transports</span></div>
-                    <div class="legend-item"><i class="fas fa-store" style="color: #10b981;"></i><span>Commerces</span></div>
-                </div>
-                <div id="map"></div>
-                <div id="city-info" style="display: none; margin-top: 20px;">
-                    <div class="card">
-                        <h3 id="city-info-title">Informations sur la ville</h3>
-                        <div class="form-grid">
-                            <div class="card"><h3>Prix au m²</h3><div class="card-value" id="city-prix-m2">0 €</div></div>
-                            <div class="card"><h3>Tension locative</h3><div class="card-value" id="city-tension">0/10</div></div>
-                            <div class="card"><h3>Fourchette loyers</h3><div class="card-value" id="city-loyers">0 - 0 €</div></div>
-                            <div class="card"><h3>Dynamisme</h3><div class="card-value" id="city-dynamisme">Moyen</div></div>
-                        </div>
-                        <div style="margin-top: 20px;">
-                            <h4 style="margin-bottom: 10px;">Points d'intérêt :</h4>
-                            <div id="city-pois" style="display: flex; gap: 15px; flex-wrap: wrap;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="form-section"><h2>Carte</h2><div id="map"></div></div>
         </div>
-        
-        <div id="comparaison" class="tab-content">
-            <div class="form-section">
-                <h2>⚖️ Comparaison de biens</h2>
-                <div class="comparison-grid">
-                    <div class="comparison-card">
-                        <h3>Bien 1 <span style="font-size: 0.8rem; color: var(--secondary);">(Actuel)</span></h3>
-                        <div class="comparison-row"><span class="comparison-label">Prix</span><span class="comparison-value" id="comp-prix-1">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Surface</span><span class="comparison-value" id="comp-surface-1">0 m²</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Loyer</span><span class="comparison-value" id="comp-loyer-1">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Rentabilité brute</span><span class="comparison-value" id="comp-rentabilite-1">0%</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Rentabilité nette</span><span class="comparison-value" id="comp-rentabilite-nette-1">0%</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Cash-flow</span><span class="comparison-value" id="comp-cashflow-1">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Prix/m²</span><span class="comparison-value" id="comp-prix-m2-1">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Tension</span><span class="comparison-value" id="comp-tension-1">0/10</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Ville</span><span class="comparison-value" id="comp-ville-1">-</span></div>
-                    </div>
-                    <div class="comparison-card">
-                        <h3>Bien 2 <span style="font-size: 0.8rem; color: var(--secondary);">(À comparer)</span></h3>
-                        <div class="form-grid" style="margin-bottom: 15px;">
-                            <div class="form-group"><label>Prix (€)</label><input type="number" id="comp-prix-2-input" placeholder="Ex: 200000"></div>
-                            <div class="form-group"><label>Surface (m²)</label><input type="number" id="comp-surface-2-input" placeholder="Ex: 60"></div>
-                            <div class="form-group"><label>Loyer (€)</label><input type="number" id="comp-loyer-2-input" placeholder="Ex: 700"></div>
-                            <div class="form-group"><label>Ville</label><select id="comp-ville-2-input"><option value="nancy">Nancy</option><option value="douai">Douai</option><option value="sceaux">Sceaux</option><option value="le-conquet">Le Conquet</option></select></div>
-                        </div>
-                        <div class="comparison-row"><span class="comparison-label">Prix</span><span class="comparison-value" id="comp-prix-2">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Surface</span><span class="comparison-value" id="comp-surface-2">0 m²</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Loyer</span><span class="comparison-value" id="comp-loyer-2">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Rentabilité brute</span><span class="comparison-value" id="comp-rentabilite-2">0%</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Rentabilité nette</span><span class="comparison-value" id="comp-rentabilite-nette-2">0%</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Cash-flow</span><span class="comparison-value" id="comp-cashflow-2">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Prix/m²</span><span class="comparison-value" id="comp-prix-m2-2">0 €</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Tension</span><span class="comparison-value" id="comp-tension-2">0/10</span></div>
-                        <div class="comparison-row"><span class="comparison-label">Ville</span><span class="comparison-value" id="comp-ville-2">-</span></div>
-                        <button class="btn mt-20" onclick="updateComparison()" style="width: 100%;"><i class="fas fa-sync"></i> Mettre à jour</button>
-                    </div>
-                </div>
-                <div class="form-section mt-20">
-                    <h2>📊 Synthèse</h2>
-                    <div class="dashboard">
-                        <div class="card"><h3>Meilleur rendement brut</h3><div class="card-value success" id="best-rentabilite-brute">-</div><div class="card-label" id="best-rentabilite-brute-ville">-</div></div>
-                        <div class="card"><h3>Meilleur cash-flow</h3><div class="card-value success" id="best-cashflow">-</div><div class="card-label" id="best-cashflow-ville">-</div></div>
-                        <div class="card"><h3>Meilleure tension</h3><div class="card-value success" id="best-tension">-</div><div class="card-label" id="best-tension-ville">-</div></div>
-                        <div class="card"><h3>Prix/m² le plus bas</h3><div class="card-value danger" id="best-prix-m2">-</div><div class="card-label" id="best-prix-m2-ville">-</div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <div id="sources" class="tab-content">
-            <div class="form-section">
-                <h2>📚 Sources</h2>
-                <p class="text-secondary mb-20">Données publiques : MeilleursAgents, INSEE, SeLoger, OpenStreetMap.</p>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <div><strong>Note</strong><br>Estimations basées sur des moyennes. Vérifiez toujours les sources originales.</div>
-                </div>
-                <h3 style="margin: 30px 0 20px 0;">📊 Données immobilières</h3>
-                <ul class="source-list">
-                    <li class="source-item">
-                        <div class="source-icon"><i class="fas fa-chart-line"></i></div>
-                        <div class="source-content">
-                            <h4>Prix au m²</h4>
-                            <p>Source: <a href="https://www.meilleursagents.com/" class="source-link" target="_blank">MeilleursAgents</a> (2025-2026)</p>
-                        </div>
-                    </li>
-                    <li class="source-item">
-                        <div class="source-icon"><i class="fas fa-map-marker-alt"></i></div>
-                        <div class="source-content">
-                            <h4>Tension locative</h4>
-                            <p>Source: <a href="https://www.seloger.com/" class="source-link" target="_blank">SeLoger</a> et <a href="https://www.insee.fr/" class="source-link" target="_blank">INSEE</a></p>
-                        </div>
-                    </li>
-                    <li class="source-item">
-                        <div class="source-icon"><i class="fas fa-euro-sign"></i></div>
-                        <div class="source-content">
-                            <h4>Fourchette de loyers</h4>
-                            <p>Source: <a href="https://www.pap.fr/" class="source-link" target="_blank">PAP.fr</a></p>
-                        </div>
-                    </li>
-                </ul>
-                <h3 style="margin: 30px 0 20px 0;">🌍 Cartographie</h3>
-                <ul class="source-list">
-                    <li class="source-item">
-                        <div class="source-icon"><i class="fas fa-map"></i></div>
-                        <div class="source-content">
-                            <h4>Fond de carte</h4>
-                            <p>Source: <a href="https://www.openstreetmap.org/" class="source-link" target="_blank">OpenStreetMap</a></p>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+            <div class="form-section"><h2>Sources</h2><p>Données : INSEE, MeilleursAgents, SeLoger.</p></div>
         </div>
     </div>
-    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const villesData = {
-            nancy: { name: "Nancy", coordinates: [48.6921, 6.1840], prixM2: 3200, tensionLocative: 7, fourchetteLoyers: { min: 550, max: 950 }, risqueVacance: "Moyen", dynamisme: "Élevé", pois: [
-                { type: "École", name: "École Stanislas", icon: "fa-school", color: "#3b82f6", coords: [48.6900, 6.1850] },
-                { type: "Université", name: "Université de Lorraine", icon: "fa-university", color: "#8b5cf6", coords: [48.6950, 6.1750] },
-                { type: "EHPAD", name: "EHPAD Les Jardins", icon: "fa-building", color: "#06b6d4", coords: [48.6850, 6.1900] },
-                { type: "Transport", name: "Gare de Nancy", icon: "fa-train", color: "#f59e0b", coords: [48.6920, 6.1800] },
-                { type: "Commerce", name: "Centre Saint-Sébastien", icon: "fa-store", color: "#10b981", coords: [48
-
+            nancy: { name: "Nancy", coordinates: [48.6921, 6.1840], prixM2: 3200, tensionLocative: 7 },
+            douai: { name: "Douai", coordinates: [50.3723, 3.0783], prixM2: 2200, tensionLocative: 6 }
+        };
+        let map;
+        function initMap() {
+            map = L.map('map').setView([48.6921, 6.1840], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+            for (const [key, data] of Object.entries(villesData)) {
+                L.marker(data.coordinates).addTo(map).bindPopup(data.name);
+            }
+        }
+        function calculerRentabilite() {
+            const prix = parseFloat(document.getElementById('prix').value);
+            const loyer = parseFloat(document.getElementById('loyer').value);
+            const rentabilite = (loyer * 12 / prix * 100).toFixed(2);
+            document.getElementById('rentabilite-brute').textContent = rentabilite + '%';
+            document.getElementById('results').style.display = 'block';
+        }
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            if (tabName === 'carte' && !map) initMap();
+        }
+        document.addEventListener('DOMContentLoaded', () => { initMap(); });
+    </script>
+</body>
+</html>
